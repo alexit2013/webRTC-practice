@@ -1,21 +1,36 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-cmn-Hans">
 <head>
-    <meta charset="UTF-8">
-    <title>高清视频流的实时获取与高效编码技术的研究与实现</title>
-    <link href="./css/main.css" type="text/css" rel="stylesheet">
+  <meta charset="UTF-8"/>
+  <title></title>
+  <link rel="stylesheet" type="text/css" href="css/main.css"/>
 </head>
 <body>
 
 <header>
-    <button id="startBtn">Start</button>
+  <button id="openCameraBtn">打开摄像头</button>
+  <button id="recordBtn">开始录制</button>
+  <button id="finishRecordBtn">结束录制</button>
+  <p id="resolutionBox">分辨率：<span id="resolution"></span></p>
+  <p id="recordDurationBox">录制时长：<span id="recordDuration"></span></p>
 </header>
 <section>
-    <video id="selfVideo"></video>
+  <div id="liveBox">
+    <h2>实时视频：</h2>
+    <video id="liveVideo"></video>
+  </div>
+  <div id="recordBox">
+    <h2>录制视频的预览：</h2>
+    <a id="recordVideoLink">保存录制的视频</a>
     <video id="recordVideo"></video>
+  </div>
 </section>
 
-<script src="./js/main.js" type="text/javascript"></script>
+<script src="./js/jquery.js"></script>
+<script src="./js/whammy.js"></script>
+<script src="./js/polyfill.js"></script>
+<script src="./js/recorder.js"></script>
+<script src="./js/main.js"></script>
 
 </body>
 </html>
