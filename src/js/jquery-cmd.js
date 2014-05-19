@@ -9073,6 +9073,12 @@ if ( typeof define === "function" && define.amd ) {
 		return jQuery;
 	});
 }
+// Register as a named CMD module
+if ( typeof define === "function" && define.cmd ) {
+	define( function() {
+		return jQuery
+	});
+}
 
 
 

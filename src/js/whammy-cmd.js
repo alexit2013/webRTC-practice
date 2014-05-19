@@ -466,3 +466,10 @@ window.Whammy = (function(){
     // expose methods of madness
   }
 })()
+
+// Register as a named CMD module
+if ( typeof define === "function" && define.cmd ) {
+  define( function() {
+    return Whammy
+  });
+}

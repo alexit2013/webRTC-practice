@@ -1,8 +1,7 @@
-// ;(function(window){
-
+define(function(require, exports, module){
 // variables init
 var document = window.document
-  , $ = window.$
+  , $ = require('baseLib')
 
 var $liveBox = $('#liveBox')
   , $recordBox = $('#recordBox')
@@ -19,6 +18,7 @@ var $liveBox = $('#liveBox')
   , recordVideo = $recordVideo.get(0)
   , $recordVideoLink = $('#recordVideoLink')
   , recordVideoLink = $recordVideoLink.get(0)
+  , VideoRecorder = require('recorder')
   , liveVideoRecorder
   , recordStartTime
   , recordTimerId = null
@@ -92,6 +92,11 @@ var handlers = {
   }
 }
 
+$liveVideo.on('play', handlers.onSelfVideoPlay)
+$openCameraBtn.on('click', handlers.onClickOpenCameraBtn)
+$recordBtn.on('click', handlers.onClickRecordBtn)
+$finishRecordBtn.on('click', handlers.onClickFinishRecordBtn)
+
 liveVideo.autoplay = true
 recordVideo.autoplay = true
 recordVideo.controls = true
@@ -99,9 +104,4 @@ recordVideo.loop = true
 
 recordVideoLink.download = 'record.webm'
 
-$liveVideo.on('play', handlers.onSelfVideoPlay)
-$openCameraBtn.on('click', handlers.onClickOpenCameraBtn)
-$recordBtn.on('click', handlers.onClickRecordBtn)
-$finishRecordBtn.on('click', handlers.onClickFinishRecordBtn)
-
-// })(this)
+})

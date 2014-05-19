@@ -26,11 +26,25 @@
   </div>
 </section>
 
-<script src="./js/jquery.js"></script>
-<script src="./js/whammy.js"></script>
-<script src="./js/polyfill.js"></script>
-<script src="./js/recorder.js"></script>
-<script src="./js/main.js"></script>
+<script id="seajsnode" src="js/sea.js"></script>
+<script>
+  seajs.config({
+    alias: {
+      // Manually wrap non-CMD modules as CMD modules.
+      // Refer: https://github.com/seajs/seajs/issues/744
+      'baseLib': 'jquery-cmd',
+      'whammy': 'whammy-cmd'
+    },
+    preload: [
+      'baseLib',
+      'whammy',
+      'polyfill',
+      'recorder'
+    ]
+  })
+
+  seajs.use('main')
+</script>
 
 </body>
 </html>
