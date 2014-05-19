@@ -50,7 +50,7 @@ var handlers = {
   },
   onGetUserMediaSuccess: function(stream){
     $liveBox.show()
-    liveVideo.src = window.URL.createObjectURL(stream)
+    liveVideo.src = URL.createObjectURL(stream)
   },
   onGetUserMediaFail: function(event){
     alert('Get user media fails')
@@ -93,7 +93,6 @@ var handlers = {
 }
 
 liveVideo.autoplay = true
-
 recordVideo.autoplay = true
 recordVideo.controls = true
 recordVideo.loop = true
