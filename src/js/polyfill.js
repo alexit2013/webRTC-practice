@@ -1,25 +1,20 @@
 define(function(){
-  // polyfill
   navigator.getUserMedia =
     navigator.getUserMedia ||
     navigator.webkitGetUserMedia ||
     navigator.mozGetUserMedia
 
-  window.requestAnimationFrame =
-    window.requestAnimationFrame ||
-    window.webkitRequestAnimationFrame ||
-    window.mozRequestAnimationFrame ||
-    window.msRequestAnimationFrame
-
-  window.cancelAnimationFrame =
-    window.cancelAnimationFrame ||
-    window.webkitCancelAnimationFrame ||
-    window.mozCancelAnimationFrame ||
-    window.msCancelAnimationFrame
-
-  window.URL =
-    window.URL ||
-    window.webkitURL ||
-    window.mozURL ||
-    window.msURL
+  [
+    'requestAnimationFrame',
+    'cancelAnimationFrame',
+    'URL',
+    'RTCPeerConnection'
+  ].forEach(function(w3cName){
+    var venderNameComponent = w3cName[0].toUpperCase() + w3cName.slice(1)
+    this[w3cName] =
+      this[w3cName] ||
+      this['webkit' + venderNameComponent] ||
+      this['moz' + venderNameComponent] ||
+      this['ms' + venderNameComponent]
+  }, window)
 })
