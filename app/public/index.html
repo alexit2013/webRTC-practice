@@ -11,6 +11,7 @@
   <button id="openCameraBtn">打开摄像头</button>
   <button id="recordBtn">开始录制</button>
   <button id="finishRecordBtn">结束录制</button>
+  <button id="startVideoShareBtn">开始视频共享</button>
   <p id="resolutionBox">分辨率：<span id="resolution"></span></p>
   <p id="recordDurationBox">录制时长：<span id="recordDuration"></span></p>
 </header>
@@ -24,8 +25,13 @@
     <a id="recordVideoLink">保存录制的视频</a>
     <video id="recordVideo"></video>
   </div>
+  <div id="remoteBox">
+    <h2>远程实时视频：</h2>
+    <video id="remoteVideo"></video>
+  </div>
 </section>
 
+<script src="/socket.io/socket.io.js"></script>
 <script id="seajsnode" src="js/sea.js"></script>
 <script>
   seajs.config({
@@ -33,7 +39,8 @@
       // Manually wrap non-CMD modules as CMD modules.
       // Refer: https://github.com/seajs/seajs/issues/744
       'baseLib': 'jquery-cmd',
-      'whammy': 'whammy-cmd'
+      'whammy': 'whammy-cmd',
+      'iceServers': 'ice-servers'
     },
     preload: [
       'baseLib',
