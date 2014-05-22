@@ -17,10 +17,11 @@ server.listen(app.get('port'))
 debugApp('Express server listening on port ' + app.get('port'))
 
 
-signalSockets = io.of('/signalSockets')
+signalSockets = io.of('/webrtcSignalChannel')
   .on('connection', function(socket){
     var roomId
       , role
+    console.log('Socket connected')
     socket.on('roomId', function(_roomId){
       var room
       roomId = _roomId

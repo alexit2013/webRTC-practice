@@ -3,6 +3,9 @@ define(function(require, exports, module){
 var document = window.document
   , $ = require('baseLib')
   , VideoRecorder = require('recorder')
+  , rtcPeer = require('rtcPeer')
+  , Caller = rtcPeer.Caller
+  , Callee = rtcPeer.Callee
 
 var $liveBox = $('#liveBox')
   , $recordBox = $('#recordBox')
@@ -22,21 +25,29 @@ var $liveBox = $('#liveBox')
   , liveVideoRecorder
   , recordStartTime
   , recordTimerId = null
-  , signalSocket
-  , peerConnection
   , $startVideoShareBtn = $('#startVideoShareBtn')
   , $remoteVideo = $('#remoteVideo')
   , remoteVideo = $remoteVideo.get(0)
-  , role
-  , ROLE_CALLER = 'caller'
-  , ROLE_CALLEE = 'callee'
-  , roomId
+  , RTC_CONFIGURATION = {
+    iceServers: [
+      {url: "stun:23.21.150.121"},
+      {url: "stun:stun.l.google.com:19302"},
+      {url: "turn:numb.viagenie.ca", credential: "webrtcdemo", username: "louis%40mozilla.com"}
+    ]
+  }
+  , MEDIA_CONSTRAINTS = {
+    optional: [
+      // Enable interoperation between Chrome and Firefox
+      {DtlsSrtpKeyAgreement: true}
+    ]
+  }
   , SDP_CONSTRAINTS = {
     mandatory: {
       OfferToReceiveVideo: true,
       OfferToReceiveAudio: true
     }
   }
+  , localVideoStream
 
 var handlers = {
   onSelfVideoPlay: function(){
@@ -65,20 +76,12 @@ var handlers = {
   },
   onGetUserMediaSuccess: function(stream){
     $liveBox.show()
-    console.log(role + ' display local video')
+    console.log('Display local video')
     liveVideo.src = URL.createObjectURL(stream)
+    localVideoStream = stream
 
-    if(peerConnection){
-      console.log(role + ' add local video stream to peer connection')
-      peerConnection.addStream(stream)
-
-      if(role === ROLE_CALLER){
-        peerConnection.createOffer(
-          handlers.onCreateSdpSuccess,
-          handlers.onFailure,
-          SDP_CONSTRAINTS
-        )
-      }
+    if(handlers.onGetUserMediaSuccess2){
+      handlers.onGetUserMediaSuccess2()
     }
   },
   onGetUserMediaFail: function(event){
@@ -120,119 +123,48 @@ var handlers = {
     $recordDuration.text( parseInt(duration / 1000) + 's' )
   },
   onClickStartVideoShareBtn: function(event){
-    peerConnection = new RTCPeerConnection(
-      {
-        iceServers: [
-          {url: "stun:23.21.150.121"},
-          {url: "stun:stun.l.google.com:19302"},
-          {url: "turn:numb.viagenie.ca", credential: "webrtcdemo", username: "louis%40mozilla.com"}
-        ]
-      },
-      {
-        optional: [
-          // Enable interoperation between Chrome and Firefox
-          {DtlsSrtpKeyAgreement: true}
-        ]
+    var roomId = location.hash.slice(1)
+      , role
+
+    // 如果还没判断是哪个角色
+    if(!role){
+      // 根据hash中是否有 `roomId` 来判断是caller还是callee
+      if(!roomId){
+        // 如果是caller，生成 `roomId` 放在hash中，
+        // 以便后续callee加入room
+        roomId = '' + parseInt(Math.random() * Math.pow(10, 10))
+        location.hash = roomId
+        role = new Caller(RTC_CONFIGURATION, MEDIA_CONSTRAINTS)
+        console.log('It is caller')
       }
-    )
-    peerConnection.addEventListener('icecandidate', handlers.onIceCandidate)
-    peerConnection.addEventListener('addstream', handlers.onAddStream)
-
-    signalSocket = io.connect('/signalSockets')
-    signalSocket.on('connect', handlers.onSignalSocketConnect)
-    signalSocket.on('iceCandidate', handlers.onSignalSocketReceiveIceCandidate)
-
-    roomId = location.hash.slice(1)
-    if(roomId){
-      role = ROLE_CALLEE
-    }
-    else{
-      role = ROLE_CALLER
-      roomId = '' + parseInt(Math.random() * Math.pow(10, 10))
-      location.hash = roomId
+      else{
+        role = new Callee(RTC_CONFIGURATION, MEDIA_CONSTRAINTS)
+        console.log('It is callee')
+      }
     }
 
-    if(role === ROLE_CALLER){
-      signalSocket.on('answer', handlers.onSignalSocketGetAnswer)
-    }
-    else{
-      signalSocket.on('offer', handlers.onSignalSocketGetOffer)
-    }
+    role.onReceiveRemoteStream = handlers.onReceiveRemoteStream
+    addStreamToRtcRole(role, function(){
+      role.connect(roomId)
+    })
+  },
+  onReceiveRemoteStream: function(stream){
+    console.log('Receive remote stream and display it')
+    remoteVideo.src = URL.createObjectURL(stream)
+  }
+}
 
-    $openCameraBtn.click()
-  },
-  onIceCandidate: function onIceCandidate(event){
-    console.log('`icecandidate` event trigger')
-    if(!event.candidate){
-      console.log('No candidate exists')
-      return
+function addStreamToRtcRole(role, next){
+  if(localVideoStream){
+    role.addLocalStream(localVideoStream)
+    next()
+  }
+  else{
+    // TODO
+    handlers.onGetUserMediaSuccess2 = function(){
+      role.addLocalStream(localVideoStream)
+      next()
     }
-
-    console.log(role + ' has an ICE candidate, and stop listen `icecandidate` event')
-    event.target.removeEventListener(event.type, onIceCandidate)
-
-    if(signalSocket.socket.connected){
-      console.log(role + ' send ICE candidate')
-      signalSocket.emit('iceCandidate', JSON.stringify(event.candidate))
-    }
-    else{
-      signalSocket.on('connect', function(){
-        console.log(role + ' send ICE candidate')
-        signalSocket.emit('iceCandidate', JSON.stringify(event.candidate))
-      })
-    }
-  },
-  onSignalSocketReceiveIceCandidate: function(candidate){
-    console.log(role + ' receive ICE candidate and add it: %O', candidate)
-    peerConnection.addIceCandidate(
-      new RTCIceCandidate( JSON.parse(candidate) )
-    )
-  },
-  onAddStream: function(event){
-    console.log(role + ' get remote stream and display it')
-    remoteVideo.src = URL.createObjectURL(event.stream)
-  },
-  onSignalSocketConnect: function(){
-    console.log(role + ' has connected signal socket and send room id to server')
-    signalSocket.emit('roomId', roomId)
-  },
-  onSignalSocketDisconnect: function(){
-    console.log(role + ' has disconnected signal socket')
-  },
-  onSignalSocketGetAnswer: function(answer){
-    console.log(role + ' receives answer %O', answer)
-    peerConnection.setRemoteDescription(
-      new RTCSessionDescription( JSON.parse(answer) )
-    )
-  },
-  onSignalSocketGetOffer: function(offer){
-    console.log(role + ' receives offer %O and creates answer', offer)
-    peerConnection.setRemoteDescription(
-      new RTCSessionDescription( JSON.parse(offer) )
-    )
-    peerConnection.createAnswer(
-      handlers.onCreateSdpSuccess,
-      handlers.onFailure
-    )
-  },
-  onCreateSdpSuccess: function(sdp){
-    var sdpType = role === ROLE_CALLER ? 'offer' : 'answer'
-    console.log(role + ' has created ' + sdpType)
-    peerConnection.setLocalDescription(sdp)
-
-    if(signalSocket.socket.connected){
-      console.log(role + ' sends ' + sdpType)
-      signalSocket.emit(sdpType, JSON.stringify(sdp))
-    }
-    else{
-      signalSocket.on('connect', function(){
-        console.log(role + ' sends ' + sdpType)
-        signalSocket.emit(sdpType, JSON.stringify(sdp))
-      })
-    }
-  },
-  onFailure: function(error){
-    console.error(error)
   }
 }
 
@@ -241,14 +173,6 @@ $openCameraBtn.on('click', handlers.onClickOpenCameraBtn)
 $recordBtn.on('click', handlers.onClickRecordBtn)
 $finishRecordBtn.on('click', handlers.onClickFinishRecordBtn)
 $startVideoShareBtn.on('click', handlers.onClickStartVideoShareBtn)
-
-liveVideo.autoplay = true
-recordVideo.autoplay = true
-recordVideo.controls = true
-recordVideo.loop = true
-remoteVideo.autoplay = true
-
-recordVideoLink.download = 'record.webm'
 
 
 })
