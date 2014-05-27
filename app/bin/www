@@ -17,7 +17,9 @@ app.set('hostname', process.env.HOSTNAME || '0.0.0.0')
 server.listen(app.get('port'), app.get('hostname'))
 console.log('Express server listening on ' + app.get('hostname') + ':' + app.get('port'))
 
-
+// Set socket.io to only log error & warn information
+io.set('log level', 1)
+// Using socket.io namespace `/webrtcSignalChannel`
 signalSockets = io.of('/webrtcSignalChannel')
   .on('connection', function(socket){
     var roomId
