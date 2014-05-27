@@ -12,9 +12,10 @@ var ROLE_CALLEE = 'callee'
 var future = {}
 
 app.set('port', process.env.PORT || 3000)
+app.set('hostname', process.env.HOSTNAME || '0.0.0.0')
 
-server.listen(app.get('port'))
-debugApp('Express server listening on port ' + app.get('port'))
+server.listen(app.get('port'), app.get('hostname'))
+console.log('Express server listening on ' + app.get('hostname') + ':' + app.get('port'))
 
 
 signalSockets = io.of('/webrtcSignalChannel')

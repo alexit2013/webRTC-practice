@@ -1,0 +1,53 @@
+2014-5-24-21-35
+connect between two device in the same local network
+remote video is black
+
+## Caller
+
+Instanciate RTC peer connection rtcPeer.js:12
+It is caller main.js:138
+Display local video main.js:79
+Add local stream to peer connection rtcPeer.js:31
+Socket start connect rtcPeer.js:66
+Socket connected
+Send room id rtcPeer.js:94
+Start creating offer rtcPeer.js:97
+Created offer and send it rtcPeer.js:105
+`icecandidate` event trigger rtcPeer.js:281
+Add local ICE candidate, stop listening `icecandidate` event rtcPeer.js:287
+Receive answer
+Exchanged media info. rtcPeer.js:113
+`this._localIceCandidateToSend.length`: 1 rtcPeer.js:306
+Send local ICE candidate rtcPeer.js:308
+Receive remote ICE candidate rtcPeer.js:266
+Add remote ICE candidate rtcPeer.js:243
+Receive remote stream rtcPeer.js:329
+Receive remote stream and display it main.js:152
+
+## Callee
+
+Instanciate RTC peer connection rtcPeer.js:12
+It is callee main.js:142
+Display local video main.js:79
+Add local stream to peer connection rtcPeer.js:31
+Socket start connect rtcPeer.js:149
+Socket connected
+Send room id rtcPeer.js:173
+Receive offer rtcPeer.js:177
+Create answer rtcPeer.js:182
+Receive remote stream rtcPeer.js:329
+Receive remote stream and display it main.js:152
+Created answer and send it rtcPeer.js:190
+`this._localIceCandidateToSend.length`: 0 rtcPeer.js:306
+`icecandidate` event trigger rtcPeer.js:281
+Add local ICE candidate, stop listening `icecandidate` event rtcPeer.js:287
+Send local ICE candidate rtcPeer.js:226
+Receive remote ICE candidate rtcPeer.js:266
+Add remote ICE candidate rtcPeer.js:243
+
+## Analysis result
+
+callee接收到remote stream时，还没做如下事情：
+- set answer
+- add local ICE candidate
+- add remote ICE candidate

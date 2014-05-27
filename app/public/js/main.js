@@ -160,6 +160,7 @@ function addStreamToRtcRole(role, next){
     next()
   }
   else{
+    $openCameraBtn.click()
     // TODO
     handlers.onGetUserMediaSuccess2 = function(){
       role.addLocalStream(localVideoStream)
