@@ -102,7 +102,7 @@ define(function(require, exports, module){
     )
   }
   Caller.prototype._onCreateOfferSuccess = function(offer){
-    console.log('Created offer and send it')
+    console.log('Created offer: %O and send it', offer)
     this._pc.setLocalDescription(offer)
     this.state.setOffer = true
     this._socket.emit('offer', JSON.stringify(offer))
@@ -162,7 +162,6 @@ define(function(require, exports, module){
       // Exchange network info. after finish exchanging media info.
       .step(function(next){
         exchangeNetworkInfo.call(that)
-        next()
       })
       .end()
 
@@ -186,7 +185,7 @@ define(function(require, exports, module){
     )
   }
   Callee.prototype._onCreateAnswerSuccess = function(next, answer){
-    console.log('Created answer and send it')
+    console.log('Created answer %O and send it', answer)
     this._pc.setLocalDescription(answer)
     this.state.setAnswer = true
     // TODO: donot go to next step until receiving caller's ack
@@ -260,7 +259,7 @@ define(function(require, exports, module){
   @param candidate {String}
   **/
   function onSocketIceCandidate(candidate){
-    console.log('Receive remote ICE candidate')
+    console.log('Receive remote ICE candidate: %O', candidate)
     candidate = JSON.parse(candidate)
     // Must use `push` method to store ICE candiate object,
     // because we wrap handle logic in `push` method
@@ -275,7 +274,7 @@ define(function(require, exports, module){
   **/
   function onPcIceCandidate(event){
     var candidate = event.candidate
-    console.log('`icecandidate` event trigger')
+    console.log('`icecandidate` event trigger: %O', candidate)
     if(!candidate){
       console.log('No candidate exists')
       return
