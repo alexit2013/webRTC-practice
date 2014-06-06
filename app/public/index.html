@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+  <meta charset="UTF-8"/>
+  <title></title>
+  <link rel="stylesheet" type="text/css" href="css/main.css"/>
+</head>
+<body>
+
+<header>
+  <button id="openCameraBtn">打开摄像头</button>
+  <button id="recordBtn">开始录制</button>
+  <button id="finishRecordBtn">结束录制</button>
+  <button id="startVideoShareBtn">开始视频共享</button>
+  <p id="resolutionBox">分辨率：<span id="resolution"></span></p>
+  <p id="recordDurationBox">录制时长：<span id="recordDuration"></span></p>
+</header>
+<section>
+  <div id="liveBox">
+    <h2>实时视频：</h2>
+    <video id="liveVideo" autoplay></video>
+  </div>
+  <div id="recordBox">
+    <h2>录制视频的预览：</h2>
+    <a id="recordVideoLink" download="record.webm">保存录制的视频</a><br>
+    <video id="recordVideo" autoplay constrols loop></video>
+  </div>
+  <div id="remoteBox">
+    <h2>远程实时视频：</h2>
+    <video id="remoteVideo" autoplay></video>
+  </div>
+</section>
+
+<script id="seajsnode" src="js/sea.js"></script>
+<script>
+  seajs.config({
+    alias: {
+      // Manually wrap non-CMD modules as CMD modules.
+      // Refer: https://github.com/seajs/seajs/issues/744
+      'baseLib': 'jquery-cmd',
+      'whammy': 'whammy-cmd',
+      'socket.io': '/socket.io/socket.io.js'
+    },
+    preload: [
+      'baseLib',
+      'whammy',
+      'polyfill',
+      'recorder'
+    ]
+  })
+
+  seajs.use('main')
+</script>
+
+</body>
+</html>

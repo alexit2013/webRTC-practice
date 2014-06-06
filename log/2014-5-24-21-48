@@ -1,0 +1,50 @@
+2014-5-24-21-48
+connect between two device in the same local network
+remote video is black
+
+## Caller
+
+Instanciate RTC peer connection rtcPeer.js:12
+It is caller main.js:138
+Display local video main.js:79
+Add local stream to peer connection rtcPeer.js:31
+Socket start connect rtcPeer.js:66
+Socket connected
+Send room id rtcPeer.js:94
+Start creating offer rtcPeer.js:97
+Created offer and send it rtcPeer.js:105
+`icecandidate` event trigger rtcPeer.js:277
+Add local ICE candidate, stop listening `icecandidate` event rtcPeer.js:283
+Receive answer
+Exchanged media info. rtcPeer.js:111
+`this._localIceCandidateToSend.length`: 1 rtcPeer.js:302
+Send local ICE candidate rtcPeer.js:304
+Receive remote stream rtcPeer.js:325
+Receive remote stream and display it main.js:152
+Receive remote ICE candidate rtcPeer.js:262
+Add remote ICE candidate rtcPeer.js:239
+
+## Callee
+
+Instanciate RTC peer connection rtcPeer.js:12
+It is callee main.js:142
+Display local video main.js:79
+Add local stream to peer connection rtcPeer.js:31
+Socket start connect rtcPeer.js:147
+Socket connected
+Send room id rtcPeer.js:171
+Receive offer rtcPeer.js:175
+Create answer rtcPeer.js:180
+Receive remote stream rtcPeer.js:325
+Receive remote stream and display it main.js:152
+Created answer and send it rtcPeer.js:188
+`this._localIceCandidateToSend.length`: 0 rtcPeer.js:302
+`icecandidate` event trigger rtcPeer.js:277
+Add local ICE candidate, stop listening `icecandidate` event rtcPeer.js:283
+Send local ICE candidate rtcPeer.js:222
+Receive remote ICE candidate rtcPeer.js:262
+Add remote ICE candidate rtcPeer.js:239
+
+## Analysis result
+
+

@@ -1,0 +1,108 @@
+#!/usr/bin/env node
+var debugApp = require('debug')('app')
+var app = require('../app')
+var server = require('http').createServer(app)
+var SocketServer = require('socket.io')
+var io = SocketServer.listen(server)
+var rooms = {}
+var signalSocket
+var handlers
+var ROLE_CALLER = 'caller'
+var ROLE_CALLEE = 'callee'
+var future = {}
+
+app.set('port', process.env.PORT || 3000)
+app.set('hostname', process.env.HOSTNAME || '0.0.0.0')
+
+server.listen(app.get('port'), app.get('hostname'))
+console.log('Express server listening on ' + app.get('hostname') + ':' + app.get('port'))
+
+// Set socket.io to only log error & warn information
+io.set('log level', 1)
+// Using socket.io namespace `/webrtcSignalChannel`
+signalSockets = io.of('/webrtcSignalChannel')
+  .on('connection', function(socket){
+    var roomId
+      , role
+    console.log('Socket connected')
+    socket.on('roomId', function(_roomId){
+      var room
+      roomId = _roomId
+      if( (room = rooms[roomId]) ){
+        // It is callee
+        role = ROLE_CALLEE
+        room[role] = socket
+        if(room.offer && !room.sentOfferToCallee){
+          socket.emit('offer', room.offer)
+          room.sentOfferToCallee = true
+        }
+        if(future.onHaveCalleeSocket){
+          future.onHaveCalleeSocket(socket)
+        }
+      }
+      else{
+        // It is caller
+        role = ROLE_CALLER
+        room = rooms[roomId] = {}
+        room[role] = socket
+        if(future.onHaveCallerSocket){
+          future.onHaveCallerSocket(socket)
+        }
+      }
+      console.log(role + ' socket get room id %s', _roomId)
+    })
+    socket.on('offer', function(offer){
+      var room
+      console.log(role + ' socket get offer')
+      room = rooms[roomId]
+      room.offer = offer
+      if(room[ROLE_CALLEE]){
+        room[ROLE_CALLEE].emit('offer', offer)
+      }
+    })
+    socket.on('answer', function(answer){
+      var room
+      console.log(role + ' socket get answer')
+      room = rooms[roomId]
+      room.answer = answer
+      room[ROLE_CALLER].emit('answer', answer)
+    })
+    socket.on('iceCandidate', function(iceCandidate){
+      var room = rooms[roomId]
+        , calleeSocket
+        , callerSocket
+      console.log(role + ' socket get ICE candidate')
+      if(role === ROLE_CALLER){
+        calleeSocket = room[ROLE_CALLEE]
+        if(calleeSocket){
+          sendIceCandidate(ROLE_CALLEE, calleeSocket, iceCandidate)
+        }
+        else{
+          future.onHaveCalleeSocket = function(calleeSocket){
+            sendIceCandidate(ROLE_CALLEE, calleeSocket, iceCandidate)
+            delete future.onHaveCalleeSocket
+          }
+        }
+      }
+      else if(role === ROLE_CALLEE){
+        callerSocket = room[ROLE_CALLER]
+        if(callerSocket){
+          sendIceCandidate(ROLE_CALLER, callerSocket, iceCandidate)
+        }
+        else{
+          future.onHaveCallerSocket = function(callerSocket){
+            sendIceCandidate(ROLE_CALLER, callerSocket, iceCandidate)
+            delete future.onHaveCallerSocket
+          }
+        }
+      }
+      else{
+        console.error('unexpected role: %s', role)
+      }
+    })
+  })
+
+function sendIceCandidate(role, socket, iceCandidate, future){
+  console.log('send ICE candidate by ' + role + ' socket')
+  socket.emit('iceCandidate', iceCandidate)
+}
